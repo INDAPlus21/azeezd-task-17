@@ -1,2 +1,2 @@
-# azeezd-task-17
-Zig Allocators
+# Azeez Daoud Task 17
+Allocators in Zig

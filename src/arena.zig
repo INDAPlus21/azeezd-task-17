@@ -36,7 +36,7 @@ pub const ArenaAllocator = struct {
     }
 
     /// # `allocator`
-    /// Returns the allocator
+    /// Returns the allocator object
     pub fn allocator(self: *ArenaAllocator) Allocator {
         return Allocator.init(self, alloc, resize, free);
     }
@@ -51,7 +51,7 @@ pub const ArenaAllocator = struct {
         var buf_node = if (self.buffers.first == null) try self.newBufferNode(size, 2048) else self.buffers.first;
 
         while (true) {
-            // Apparently the data of the array is stored inside the array, that is why its starts after 
+            // Data of the node is inside the array, that is why we skip that part
             var buffer = buf_node.?.data[@sizeOf(BufferNode)..];
 
             // Align the pointer to given data alignment
@@ -111,27 +111,3 @@ pub const ArenaAllocator = struct {
         }
     }
 };
-
-test "arena tests" {
-    var arena = try ArenaAllocator.init(std.heap.page_allocator);
-    const allocator = arena.allocator();
-    defer arena.deinit();
-
-    // Good ol' byte allocation
-    const my_small_array = try allocator.alloc(u8, 100);
-    assert(my_small_array.len == 100);
-
-    // Different type allocation. Testing with amount of bytes
-    const my_bigger_array = try allocator.alloc(usize, 500);
-    assert(mem.sliceAsBytes(my_bigger_array).len == @sizeOf(usize) * 500);
-    
-    // Even bigger array with an unorthodox bit-sized integer
-    const my_high_array = try allocator.alloc(u420, 420);
-    assert(mem.sliceAsBytes(my_high_array).len == @sizeOf(u420) * 420);
-
-    // Create array then free it (as arena allocator can only free last).
-    var my_mistake_array = try allocator.alloc(i31, 200);
-    const old_end = arena.end_index;
-    allocator.free(my_mistake_array);
-    assert(old_end - 200 * @sizeOf(i31) == arena.end_index); // Index back to where it was before allocation!
-}
