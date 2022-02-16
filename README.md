@@ -19,7 +19,7 @@ Freeing memory is done by taking that freed memory and appends it as a node in t
 
 Resizing is not supported. Calling it will do nothing.
 
-The Singly Linked List is used to have control over the heaps, mainly when freeing all of them when the allocator is destroyed.
+The Singly Linked List is used to have control over the heaps, mainly when freeing all of them when the allocator is destroyed. The Allocator should be destroyed using the `deinit` function.
 
 ## Visualizing (kinda)
 This should look approximately like that. Note that the Free Node pointers are probably more messy than in the image.
