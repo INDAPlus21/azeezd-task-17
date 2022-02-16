@@ -5,7 +5,7 @@ const assert = std.debug.assert;
 
 /// Arena Allocator that uses creates buffers that double in side if the previous fills up or creates one large enough if the request allocation is too big.
 /// Frees everything using one free command, the deinit.
-/// resize() does nothing (it's No-Op) and if free([]u8) is given the last memory allocated, it will free that, otherwise it's No-Op as well.
+/// resize() does nothing and if free([]u8) is given the last memory allocated, it will free that, otherwise it does nothing as well.
 pub const ArenaAllocator = struct {
     underlying: mem.Allocator,
     buffers: std.SinglyLinkedList([]u8),
@@ -99,8 +99,6 @@ pub const ArenaAllocator = struct {
     }
 
     fn free(self: *ArenaAllocator, buf: []u8, buf_align: u29, ra: usize) void {
-        _ = self;
-        _ = buf;
         _ = buf_align;
         _ = ra;
 

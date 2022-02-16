@@ -108,23 +108,6 @@ pub const FreeListAllocator = struct {
         return null;
     }
 
-    
-    pub fn printFree(self: *FreeListAllocator) void {
-        var first = self.free_nodes.first;
-        std.debug.print("\n===FREE NODES===\n", .{});
-        while (first) |node| : (first = node.next) {
-            std.debug.print("PTR:{}\t SIZE:{}\n", .{@ptrToInt(node.data.ptr), node.data.len});
-        }
-    }
-
-    pub fn printHeaps(self: *FreeListAllocator) void {
-        var first = self.heaps.first;
-        std.debug.print("\n===HEAPS===\n", .{});
-        while (first) |node| : (first = node.next) {
-            std.debug.print("PTR:{}\t SIZE:{}\n", .{@ptrToInt(node.data.ptr), node.data.len});
-        }
-    }
-
     /// # `newFreeNode`
     /// Takes a byte buffer and appends it to the Free Nodes Doubly-linked List
     fn newFreeNode(self: *FreeListAllocator, buffer: []u8) void {
@@ -138,7 +121,7 @@ pub const FreeListAllocator = struct {
     }
 
     /// # `resize`
-    /// Resizing is not supported (is No-Op) with regard to Zig Standard because it wants resizing functions to guarantee that the pointer is not changed
+    /// Resizing is not supported (this will do nothing) with regard to Zig Standard because it wants resizing functions to guarantee that the pointer is not changed
     fn resize(self: *FreeListAllocator, buf: []u8, buf_align: u29, new_len: usize, len_align: u29, ra: usize) ?usize {
         _ = buf;
         _ = buf_align;
@@ -155,6 +138,6 @@ pub const FreeListAllocator = struct {
         _ = buf_align;
         _ = ra;
 
-        self.newFreeNode(buf);
+        self.newFreeNode(buf); // appends the new free memory to free nodes
     }
 };
