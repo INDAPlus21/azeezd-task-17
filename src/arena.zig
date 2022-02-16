@@ -59,10 +59,11 @@ pub const ArenaAllocator = struct {
             const aligned_idx = aligned_ptr - @ptrToInt(buffer.ptr);
             const new_end = aligned_idx + size;
 
-            if (new_end < buffer.len) { // Too big! allocate new!
+            if (new_end < buffer.len) {
                 self.end_index = new_end;
                 return buffer[aligned_idx..new_end];
             }
+            // Too big! allocate new!
             buf_node = try self.newBufferNode(size, buffer.len);
         }
     }
