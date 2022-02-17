@@ -73,7 +73,7 @@ pub const ArenaAllocator = struct {
     fn newBufferNode(self: *ArenaAllocator, requested_size: usize, curr_buffer_len: usize) !*BufferNode {
         // Either create with double of the previous or equal to the size of the requested size
         const new_len = @maximum(curr_buffer_len * 2, requested_size);
-        const new_buffer = try self.underlying.rawAlloc(new_len, @alignOf(BufferNode), 1, @returnAddress());
+        const new_buffer = try self.underlying.alloc(u8, new_len);
         const new_node = @ptrCast(*BufferNode, @alignCast(@alignOf(BufferNode), new_buffer.ptr));
         new_node.* = BufferNode {
             .data = new_buffer,

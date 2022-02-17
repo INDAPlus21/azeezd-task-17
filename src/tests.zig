@@ -33,8 +33,9 @@ test "free list tests" {
     defer free_list_allocator.deinit();
     const allocator = free_list_allocator.allocator();
 
-    // One heap at the moment! We will test if this increases down below
+    // One heap and free node at the moment! We will test if this increases down below
     assert(free_list_allocator.heaps.len() == 1);
+    assert(free_list_allocator.free_nodes.len == 1);
 
     // Ye Olde Allocation
     const my_small_array = try allocator.alloc(u8, 100);
@@ -49,7 +50,7 @@ test "free list tests" {
     // Test after request with usize. Length is aligned with respect to usize
     assert(free_list_allocator.free_nodes.last.?.data.len == 
             std.mem.alignBackward(4096 - 100 - 300 * @sizeOf(usize) - @sizeOf(std.SinglyLinkedList([]u8).Node), @alignOf(usize)));
-    //                             page   u8      usize array                node size                               alignment
+    //                            page   u8      usize array                node size                               alignment
 
     // Allocate memory for array for a big array. This more than a page size. So it will create a new heap as well as a new free node (the new heap)
     const my_PIrfect_array = try allocator.alloc(u314, 314);
@@ -60,7 +61,7 @@ test "free list tests" {
     assert(free_list_allocator.free_nodes.len == 2);
 
 
-    // Let us free some memory and test what happend to that memory
+    // Let us free some memory and test what happens to it
     allocator.free(my_bigger_array);
     assert(free_list_allocator.free_nodes.len == 3);
     assert(@ptrToInt(free_list_allocator.free_nodes.last.?.data.ptr) == @ptrToInt(my_bigger_array.ptr));
@@ -77,12 +78,12 @@ test "free list tests" {
     const my_quite_big_array = try allocator.alloc(u8, 3000);
     assert(@ptrToInt(my_quite_big_array.ptr) == ptr_to_second_node);
 
-    // Let allocate something smaller than 1568 and see if it drops in the first node
+    // Let us allocate something smaller than 1568 and see if it gets prepended to the first node list
     const ptr_to_first_node = @ptrToInt(free_list_allocator.free_nodes.first.?.data.ptr);
     const new_array = try allocator.alloc(u8, 1000);
     assert(ptr_to_first_node == @ptrToInt(new_array.ptr));
 
-    // And now since residue memories drop to the tail. The first node should be the 2400 byte one
+    // And now since residue memories are appended to the tail. The first node should now be the 2400 byte one
     assert(free_list_allocator.free_nodes.first.?.data.len == 2400);
 
     // And now your memory is hella fragmented :D
