@@ -9,11 +9,11 @@ test "arena tests" {
     defer arena_allocator.deinit();
     const allocator = arena_allocator.allocator();
 
-    // Good ol' byte allocation
+    // Good ol' u8 array allocation
     const my_small_array = try allocator.alloc(u8, 100);
     assert(my_small_array.len == 100);
 
-    // Different type allocation. Testing with amount of bytes
+    // Different type allocation. Testing with amount of bytes allocated
     const my_bigger_array = try allocator.alloc(usize, 500);
     assert(mem.sliceAsBytes(my_bigger_array).len == @sizeOf(usize) * 500);
     
@@ -21,7 +21,7 @@ test "arena tests" {
     const my_high_array = try allocator.alloc(u420, 420);
     assert(mem.sliceAsBytes(my_high_array).len == @sizeOf(u420) * 420);
 
-    // Create array then free it (as arena allocator can only free last).
+    // Create an array then free it (as arena allocator can only free the last memory allocated).
     var my_mistake_array = try allocator.alloc(i31, 200);
     const old_end = arena_allocator.end_index;
     allocator.free(my_mistake_array);
@@ -33,7 +33,7 @@ test "free list tests" {
     defer free_list_allocator.deinit();
     const allocator = free_list_allocator.allocator();
 
-    // One heap and free node at the moment! We will test if this increases down below
+    // One heap and free node at the moment! We will test if this increases down further down the tests
     assert(free_list_allocator.heaps.len() == 1);
     assert(free_list_allocator.free_nodes.len == 1);
 
@@ -43,16 +43,16 @@ test "free list tests" {
 
     assert(free_list_allocator.free_nodes.last.?.data.len == 4096 - 100 - @sizeOf(std.SinglyLinkedList([]u8).Node)); // Node data is inside the array
 
-    // Different type and size. Testing byte amount
+    // Different type and size. Testing with the amount of bytes
     const my_bigger_array = try allocator.alloc(usize, 300);
     assert(mem.sliceAsBytes(my_bigger_array).len == @sizeOf(usize) * 300);
 
-    // Test after request with usize. Length is aligned with respect to usize
+    // Testing the usize array allocation. Length is aligned with respect to usize
     assert(free_list_allocator.free_nodes.last.?.data.len == 
             std.mem.alignBackward(4096 - 100 - 300 * @sizeOf(usize) - @sizeOf(std.SinglyLinkedList([]u8).Node), @alignOf(usize)));
-    //                            page   u8      usize array                node size                               alignment
+    //                            page   u8      usize array                node size, it's inside the array      data alignment
 
-    // Allocate memory for array for a big array. This more than a page size. So it will create a new heap as well as a new free node (the new heap)
+    // Allocate memory for a big array. This is more than a page size, so it will create a new heap as well as a new free node (to store residues)
     const my_PIrfect_array = try allocator.alloc(u314, 314);
     assert(mem.sliceAsBytes(my_PIrfect_array).len == @sizeOf(u314) * 314);
 
@@ -78,7 +78,7 @@ test "free list tests" {
     const my_quite_big_array = try allocator.alloc(u8, 3000);
     assert(@ptrToInt(my_quite_big_array.ptr) == ptr_to_second_node);
 
-    // Let us allocate something smaller than 1568 and see if it gets prepended to the first node list
+    // Let us allocate something smaller than 1568 and see if it gets prepended to the first node
     const ptr_to_first_node = @ptrToInt(free_list_allocator.free_nodes.first.?.data.ptr);
     const new_array = try allocator.alloc(u8, 1000);
     assert(ptr_to_first_node == @ptrToInt(new_array.ptr));
